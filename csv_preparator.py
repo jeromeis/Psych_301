@@ -5,7 +5,6 @@ import os
 def load_and_merge_mat_files_from_folder(folder_path, label_column_name):
     """
     Fusionne les fichiers MATLAB dans un dossier en regroupant les lignes par label.
-    
     :param folder_path: Chemin du dossier contenant les fichiers .mat
     :param label_column_name: Nom de la colonne contenant les labels
     :return: DataFrame fusionné
@@ -52,10 +51,10 @@ def load_and_merge_mat_files_from_folder(folder_path, label_column_name):
 
     return merged_df
 
+
 def save_merged_data_to_csv(merged_df, output_path):
     """
     Sauvegarde les données fusionnées dans un fichier CSV.
-    
     :param merged_df: DataFrame fusionné
     :param output_path: Chemin pour sauvegarder le fichier CSV
     """
@@ -63,12 +62,10 @@ def save_merged_data_to_csv(merged_df, output_path):
     print(f"Data merged and saved to {output_path}")
 
 
-# Exemple d'utilisation
 def main():
     folder_path = input("Entrez le chemin du dossier contenant les fichiers .mat : ").strip()
     participant_id = input("Entrez le numéro du participant : ").strip()
 
-    # Valider l'entrée utilisateur pour le numéro de participant
     if not participant_id.isdigit():
         raise ValueError("Le numéro du participant doit être un entier positif.")
 
@@ -80,6 +77,7 @@ def main():
 
     # Sauvegarder les données fusionnées
     save_merged_data_to_csv(merged_df, output_path)
+
 
 if __name__ == "__main__":
     main()
