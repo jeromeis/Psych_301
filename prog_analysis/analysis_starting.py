@@ -4,9 +4,10 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import spearmanr
+import csv
 
 
-# make the csv with |trial|S_I|S_III|Response (1 or 2) for each participants
+# make the csv with |trial|S_I|S_III|Response (1 or 2) for each participants - reprendre Morgane
 def list_trial_computer(folder_stimulus_1, folder_stimulus_2):
     labels = ['trial', 'stimuli_1_seg2', 'stimuli_1_seg3', 'stimuli_2_seg2', 'stimuli_2_seg3']
 
@@ -47,7 +48,6 @@ def csv_maker_per_participant(num_participant, file_path, folder_stimulus_1, fol
     initial_df = initial_df.sort_values('trial')
 
 
-
     final_df = ...
 
     name_file_to_save = f"{file_path}/{num_participant}_ready_for_analysis.csv"
@@ -84,9 +84,6 @@ def analyze_correlation(df, name_file_to_save, num_participant):
     # Calcul des coefficients de Spearman
     spearman_seg2, p_value_seg2 = spearmanr(df['delta_seg2'], df['response'])
     spearman_seg3, p_value_seg3 = spearmanr(df['delta_seg3'], df['response'])
-
-    print(f"Participant {num_participant} - Spearman delta_seg2/response: {spearman_seg2}, p-value: {p_value_seg2}")
-    print(f"Participant {num_participant} - Spearman delta_seg3/response: {spearman_seg3}, p-value: {p_value_seg3}")
 
     # Sauvegarde des résultats dans un fichier CSV
     file_exists = os.path.isfile(name_file_to_save)
