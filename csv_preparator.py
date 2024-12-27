@@ -52,6 +52,33 @@ def load_and_merge_mat_files_from_folder(folder_path, label_column_name):
     return merged_df
 
 
+def add_excel_data(merged_df, excel_path, label_column_name):
+    """
+    Intègre les colonnes d'un fichier Excel ou ODS dans le DataFrame fusionné.
+    :param merged_df: DataFrame fusionné.
+    :param excel_path: Chemin du fichier Excel ou ODS contenant les données supplémentaires.
+    :param label_column_name: Nom de la colonne de labels pour effectuer la jointure.
+    :return: DataFrame enrichi avec les colonnes provenant de l'Excel/ODS.
+    """
+    # Charger les données Excel ou ODS avec le moteur approprié
+    file_extension = os.path.splitext(excel_path)[1].lower()
+    if file_extension == ".ods":
+        excel_data = pd.read_excel(excel_path, engine="odf")
+    elif file_extension == ".xlsx" or file_extension == ".xls":
+        excel_data = pd.read_excel(excel_path)
+    else:
+        raise ValueError(f"Format de fichier non pris en charge : {file_extension}")
+
+    # Vérifiez que la colonne de labels existe dans l'Excel
+    if label_column_name not in excel_data.columns:
+        raise ValueError(f"Colonne '{label_column_name}' introuvable dans le fichier Excel/ODS.")
+
+    # Fusionner les données sur la colonne de labels
+    enriched_df = pd.merge(merged_df, excel_data, on=label_column_name, how='left')
+
+    return enriched_df
+
+
 def save_merged_data_to_csv(merged_df, output_path):
     """
     Sauvegarde les données fusionnées dans un fichier CSV.
@@ -64,6 +91,7 @@ def save_merged_data_to_csv(merged_df, output_path):
 
 def main():
     folder_path = input("Entrez le chemin du dossier contenant les fichiers .mat : ").strip()
+    excel_path = "stimuli_values.ods"
     participant_id = input("Entrez le numéro du participant : ").strip()
 
     if not participant_id.isdigit():
@@ -74,6 +102,9 @@ def main():
 
     # Fusionner les fichiers du dossier
     merged_df = load_and_merge_mat_files_from_folder(folder_path, label_column_name)
+
+    # Ajouter les données Excel ou ODS
+    merged_df = add_excel_data(merged_df, excel_path, label_column_name)
 
     # Sauvegarder les données fusionnées
     save_merged_data_to_csv(merged_df, output_path)
