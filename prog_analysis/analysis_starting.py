@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-import csv
+from scipy.stats import spearmanr
 
 
 # make the csv with |trial|S_I|S_III|Response (1 or 2) for each participants
@@ -77,25 +77,30 @@ def generate_heatmap(df, output_path, num_participant):
     plt.show()
 
 
-
-def generate_heatmap(df, output_path, num_participant):
+def analyze_correlation(df, name_file_to_save, num_participant):
     df['delta_seg2'] = df['stimuli_2_seg2'].astype(float) - df['stimuli_1_seg2'].astype(float)
     df['delta_seg3'] = df['stimuli_2_seg3'].astype(float) - df['stimuli_1_seg3'].astype(float)
 
-    heatmap_data = df.pivot_table(
-        values='response',
-        index='delta_seg2',
-        columns='delta_seg3',
-        aggfunc='mean'
-    )
+    # Calcul des coefficients de Spearman
+    spearman_seg2, p_value_seg2 = spearmanr(df['delta_seg2'], df['response'])
+    spearman_seg3, p_value_seg3 = spearmanr(df['delta_seg3'], df['response'])
 
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="coolwarm")
-    plt.title("Heatmap des réponses en fonction des deltas")
-    plt.xlabel("Delta Segment 3")
-    plt.ylabel("Delta Segment 2")
-    plt.savefig(os.path.join(output_path, f"{num_participant}_heatmap.png"))
-    plt.show()
+    print(f"Participant {num_participant} - Spearman delta_seg2/response: {spearman_seg2}, p-value: {p_value_seg2}")
+    print(f"Participant {num_participant} - Spearman delta_seg3/response: {spearman_seg3}, p-value: {p_value_seg3}")
+
+    # Sauvegarde des résultats dans un fichier CSV
+    file_exists = os.path.isfile(name_file_to_save)
+    with open(name_file_to_save, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        # Écrire l'en-tête si le fichier est nouveau
+        if not file_exists:
+            writer.writerow(['participant_id', 'comparison', 'spearman_coef', 'p_value'])
+
+        # Ajouter les résultats
+        writer.writerow([num_participant, 'delta_seg2_vs_response', spearman_seg2, p_value_seg2])
+        writer.writerow([num_participant, 'delta_seg3_vs_response', spearman_seg3, p_value_seg3])
+
+    print(f"Results saved to {name_file_to_save}")
 
 
 def main(num_participant, relative_path, name_file_to_save="results_analysis_coefficients.csv"):
