@@ -8,6 +8,8 @@ import csv
 
 def response_time(file):
     
+
+    
 def generate_heatmap(df, output_path, num_participant):
     df['delta_seg2'] = df['stimuli_2_seg2'].astype(float) - df['stimuli_1_seg2'].astype(float)
     df['delta_seg3'] = df['stimuli_2_seg3'].astype(float) - df['stimuli_1_seg3'].astype(float)
