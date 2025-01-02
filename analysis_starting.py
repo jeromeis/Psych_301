@@ -6,8 +6,20 @@ from scipy.stats import spearmanr
 import csv
 
 
-def response_time(file):
-    
+def response_time(data_file, num_participant, file_to_save="Response_time.csv"):
+    df = pd.read_csv(data_file)
+    average = df['response time'].mean()
+    std = df['response time'].std()
+
+    with open(file_to_save, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        # Écrire l'en-tête si le fichier est nouveau
+        if not file:
+            writer.writerow(['participant', 'average_rt', 'std_rt'])
+
+        writer.writerow([num_participant, average, std])
+
+    print(f"Results saved to {file_to_save}")
 
     
 def generate_heatmap(df, output_path, num_participant):
@@ -31,7 +43,6 @@ def generate_heatmap(df, output_path, num_participant):
     plt.show()
 
 
-# faire pour les 4
 def analyze_correlation(df, name_file_to_save, num_participant):
     df['delta_seg2'] = df['stimuli_2_seg2'].astype(float) - df['stimuli_1_seg2'].astype(float)
     df['delta_seg3'] = df['stimuli_2_seg3'].astype(float) - df['stimuli_1_seg3'].astype(float)
@@ -55,15 +66,19 @@ def analyze_correlation(df, name_file_to_save, num_participant):
     print(f"Results saved to {name_file_to_save}")
 
 
-def main(num_participant, relative_path, name_file_to_save="results_analysis_coefficients.csv"):
-    folder_stimulus_1 = os.path.join(relative_path, "stimulus_1")
-    folder_stimulus_2 = os.path.join(relative_path, "stimulus_2")
-    output_path = os.path.join(relative_path, "output")
+def main(name_file_to_save="results_analysis_coefficients.csv"):
+    num_participant = int(input("What is the number of the participant ? :").strip())
+    relative_path_input = input("What is the relative path of the file containing the data?: ").strip()
 
+    participant_df = ...
+
+
+    output_path = os.path.join(relative_path_input, name_file_to_save)
     os.makedirs(output_path, exist_ok=True)
 
-    participant_df = csv_maker_per_participant(num_participant, output_path, folder_stimulus_1, folder_stimulus_2)
-
     analyze_correlation(participant_df, name_file_to_save, num_participant)
-
     generate_heatmap(participant_df, output_path, num_participant)
+    response_time(relative_path_input, num_participant, file_to_save="Response_time.csv")
+
+    if __name__ == "__main__":
+        main()
