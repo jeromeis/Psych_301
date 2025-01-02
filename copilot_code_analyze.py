@@ -79,6 +79,11 @@ def main():
             if not all(col in df.columns for col in required_columns):
                 print(f"The file {file_name} is missing required columns.")
                 continue
+
+            df["P1\'-P1"] = round(df["P1\'-P1"], 2)
+            df["P2\'-P2"] = round(df["P2\'-P2"], 2)
+            df["P3\'-P3"] = round(df["P3\'-P3"], 2)
+            df["P4\'-P4"] = round(df["P4\'-P4"], 2)
             analyze_correlation(df, name_file_to_save_coef, num_participant)
             generate_heatmap(df, output_path, num_participant)
             response_time(df, num_participant, file_to_save="Response_time.csv")
