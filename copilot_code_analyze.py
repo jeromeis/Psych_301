@@ -5,7 +5,6 @@ import seaborn as sns
 from scipy.stats import spearmanr
 import csv
 
-# Fonction pour calculer et sauvegarder le temps de réponse
 def response_time(df, num_participant, file_to_save="Response_time.csv"):
     average = df['response time'].mean()
     std = df['response time'].std()
@@ -58,24 +57,29 @@ def analyze_correlation(df, name_file_to_save, num_participant):
     print(f"Correlation results saved to {name_file_to_save}")
 
 # Fonction principale pour orchestrer l'analyse
-def main(name_file_to_save="results_analysis_coefficients.csv"):
-    folder_path = input("What is the relative path of the folder containing the data?: ").strip()
+def main():
+    name_file_to_save_coef = "results_analysis_coefficients.csv"
+
+    folder_path = "final_data_csv"
+
     output_path = "output_analysis"
     os.makedirs(output_path, exist_ok=True)
 
-    results = []
     for file_name in os.listdir(folder_path):
         if file_name.endswith(".csv"):
-            num_participant = file_name.split('_')[1].split('.')[0]
+
+            file_no_csv, extension = file_name.split(".")
+            parts = file_no_csv.split('_')
+
+            num_participant = parts[3]
             file_path = os.path.join(folder_path, file_name)
             df = pd.read_csv(file_path)
-
+            
             required_columns = ["P1\'-P1", "P2\'-P2", "P3\'-P3", "P4\'-P4", "decision", "response time"]
             if not all(col in df.columns for col in required_columns):
                 print(f"The file {file_name} is missing required columns.")
                 continue
-
-            analyze_correlation(df, name_file_to_save, num_participant)
+            analyze_correlation(df, name_file_to_save_coef, num_participant)
             generate_heatmap(df, output_path, num_participant)
             response_time(df, num_participant, file_to_save="Response_time.csv")
 

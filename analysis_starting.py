@@ -5,80 +5,79 @@ import seaborn as sns
 from scipy.stats import spearmanr
 import csv
 
-
-def response_time(data_file, num_participant, file_to_save="Response_time.csv"):
-    df = pd.read_csv(data_file)
+# Fonction pour calculer et sauvegarder le temps de réponse
+def response_time(df, num_participant, file_to_save="Response_time.csv"):
     average = df['response time'].mean()
     std = df['response time'].std()
 
+    file_exists = os.path.isfile(file_to_save)
     with open(file_to_save, mode='a', newline='') as file:
         writer = csv.writer(file)
-        # Écrire l'en-tête si le fichier est nouveau
-        if not file:
+        if not file_exists:
             writer.writerow(['participant', 'average_rt', 'std_rt'])
-
         writer.writerow([num_participant, average, std])
 
     print(f"Results saved to {file_to_save}")
 
-    
+# Fonction pour générer la carte de chaleur
 def generate_heatmap(df, output_path, num_participant):
-    df['delta_seg2'] = df['stimuli_2_seg2'].astype(float) - df['stimuli_1_seg2'].astype(float)
-    df['delta_seg3'] = df['stimuli_2_seg3'].astype(float) - df['stimuli_1_seg3'].astype(float)
+    df['delta_seg2'] = df['P2\'-P2'].astype(float)
+    df['delta_seg3'] = df['P3\'-P3'].astype(float)
 
     heatmap_data = df.pivot_table(
-        values='response',
+        values='decision',
         index='delta_seg2',
         columns='delta_seg3',
         aggfunc='mean'
     )
 
     plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="coolwarm")
+    sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="coolwarm", cbar_kws={'label': 'Probability of Decision 1'})
     plt.title(f"Participant {num_participant} - Heatmap of Responses")
     plt.xlabel("Delta Segment 3")
     plt.ylabel("Delta Segment 2")
     heatmap_file = os.path.join(output_path, f"{num_participant}_heatmap.png")
     plt.savefig(heatmap_file)
-    plt.show()
+    plt.close()
 
-
+# Fonction pour analyser les corrélations et les sauvegarder
 def analyze_correlation(df, name_file_to_save, num_participant):
-    df['delta_seg2'] = df['stimuli_2_seg2'].astype(float) - df['stimuli_1_seg2'].astype(float)
-    df['delta_seg3'] = df['stimuli_2_seg3'].astype(float) - df['stimuli_1_seg3'].astype(float)
+    deltas = ["P1\'-P1", "P2\'-P2", "P3\'-P3", "P4\'-P4"]
+    correlations = []
+    for delta in deltas:
+        spearman_coef, p_value = spearmanr(df[delta], df['decision'])
+        correlations.append([num_participant, delta, spearman_coef, p_value])
 
-    # Calcul des coefficients de Spearman
-    spearman_seg2, p_value_seg2 = spearmanr(df['delta_seg2'], df['response'])
-    spearman_seg3, p_value_seg3 = spearmanr(df['delta_seg3'], df['response'])
-
-    # Sauvegarde des résultats dans un fichier CSV
     file_exists = os.path.isfile(name_file_to_save)
     with open(name_file_to_save, mode='a', newline='') as file:
         writer = csv.writer(file)
-        # Écrire l'en-tête si le fichier est nouveau
         if not file_exists:
-            writer.writerow(['participant_id', 'comparison', 'spearman_coef', 'p_value'])
+            writer.writerow(['participant_id', 'delta', 'spearman_coef', 'p_value'])
+        writer.writerows(correlations)
 
-        # Ajouter les résultats
-        writer.writerow([num_participant, 'delta_seg2_vs_response', spearman_seg2, p_value_seg2])
-        writer.writerow([num_participant, 'delta_seg3_vs_response', spearman_seg3, p_value_seg3])
+    print(f"Correlation results saved to {name_file_to_save}")
 
-    print(f"Results saved to {name_file_to_save}")
-
-
+# Fonction principale pour orchestrer l'analyse
 def main(name_file_to_save="results_analysis_coefficients.csv"):
-    num_participant = int(input("What is the number of the participant ? :").strip())
-    relative_path_input = input("What is the relative path of the file containing the data?: ").strip()
-
-    participant_df = ...
-
-
-    output_path = os.path.join(relative_path_input, name_file_to_save)
+    folder_path = "final_data_csv"
+    output_path = "output_analysis"
     os.makedirs(output_path, exist_ok=True)
 
-    analyze_correlation(participant_df, name_file_to_save, num_participant)
-    generate_heatmap(participant_df, output_path, num_participant)
-    response_time(relative_path_input, num_participant, file_to_save="Response_time.csv")
+    for file_name in os.listdir(folder_path):
+        if file_name.endswith(".csv"):
+            parts = file_name.split('_')
 
-    if __name__ == "__main__":
-        main()
+            num_participant = parts[2]
+            file_path = os.path.join(folder_path, file_name)
+            df = pd.read_csv(file_path)
+            
+            required_columns = ["P1\'-P1", "P2\'-P2", "P3\'-P3", "P4\'-P4", "decision", "response time"]
+            if not all(col in df.columns for col in required_columns):
+                print(f"The file {file_name} is missing required columns.")
+                continue
+            analyze_correlation(df, name_file_to_save, num_participant)
+            generate_heatmap(df, output_path, num_participant)
+            response_time(df, num_participant, file_to_save="Response_time.csv")
+
+if __name__ == "__main__":
+    main()
