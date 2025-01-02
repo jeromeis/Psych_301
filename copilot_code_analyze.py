@@ -5,9 +5,11 @@ import seaborn as sns
 from scipy.stats import spearmanr
 import csv
 
+
 def response_time(df, num_participant, file_to_save="Response_time.csv"):
-    average = df['response time'].mean()
-    std = df['response time'].std()
+    filtered_response_times = df['response time'][df['response time'] <= 1000]
+    average = filtered_response_times.mean()
+    std = filtered_response_times.std()
 
     file_exists = os.path.isfile(file_to_save)
     with open(file_to_save, mode='a', newline='') as file:
@@ -17,6 +19,7 @@ def response_time(df, num_participant, file_to_save="Response_time.csv"):
         writer.writerow([num_participant, average, std])
 
     print(f"Results saved to {file_to_save}")
+
 
 # Fonction pour générer la carte de chaleur
 def generate_heatmap(df, output_path, num_participant):
@@ -38,6 +41,7 @@ def generate_heatmap(df, output_path, num_participant):
     heatmap_file = os.path.join(output_path, f"{num_participant}_heatmap.png")
     plt.savefig(heatmap_file)
     plt.close()
+
 
 # Fonction pour analyser les corrélations et les sauvegarder
 def analyze_correlation(df, name_file_to_save, num_participant):
@@ -87,6 +91,7 @@ def main():
             analyze_correlation(df, name_file_to_save_coef, num_participant)
             generate_heatmap(df, output_path, num_participant)
             response_time(df, num_participant, file_to_save="Response_time.csv")
+
 
 if __name__ == "__main__":
     main()
